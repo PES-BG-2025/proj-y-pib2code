@@ -4,11 +4,23 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+# --------- Barra lateral: carga y opciones ---------
 #Definición de los parámetros de la aplicación
-st.set_page_config(page_title="Dashboard PIB de Guatemala", layout="wide")
-st.title("📊 Dashboard PIB de Guatemala por actividad económica")
+file = st.sidebar.file_uploader("Sube tu Excel (.xlsx)", type=["xlsx"])
+sheet = st.sidebar.text_input("Nombre de la hoja", value="resultado")
 
-#Carga del archivo desde excel y configuración de la barra de opciones
-st.sidebar.header("1) Cargar Excel")
-uploaded = st.sidebar.file_uploader("Archivo (.xlsx)", type=["xlsx"])
-sheet = st.sidebar.text_input("Hoja", value="resultado")
+st.sidebar.markdown("### Columna de tiempo")
+time_mode = st.sidebar.radio("¿Cómo viene la fecha/tiempo?",
+                             ["date (timestamp)", "year + quarter"], index=1)
+
+date_col = None
+year_col = None
+quarter_col = None
+
+if time_mode == "date (timestamp)":
+    date_col = st.sidebar.text_input("Nombre de la columna de fecha", value="date")
+else:
+    year_col = st.sidebar.text_input("Columna de año", value="year")
+    quarter_col = st.sidebar.text_input("Columna de trimestre", value="quarter")
+
+btn = st.sidebar.button("Cargar y listar variables")
