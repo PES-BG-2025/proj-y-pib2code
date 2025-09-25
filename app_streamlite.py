@@ -4,9 +4,11 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 import numpy as np
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 
-# --------- Barra lateral: carga y opciones ---------
+# Barside:
 #Definición de los parámetros de la aplicación
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
 st.title("📈 PIB en Guatemala")
@@ -16,13 +18,12 @@ st.caption("Carga tu Excel, elige Año/Quarter y grafica hasta 3 variables.")
 backgroundColor = st.get_option('theme.secondaryBackgroundColor')
 textColor = st.get_option('theme.textColor')
 
-
-# Lista objetivo de variables permitidas en Y
+# Lista de variables permitidas en Y
 TARGET_Y_VARS = [
     "PIB_nominal", "Prim_nominal", "Sec_nominal", "Ter_nominal",
     "PIB_constante", "Prim_constante", "Sec_constante", "Ter_constante",
     "PIB_encadenado", "Prim_encadenado", "Sec_encadenado", "Ter_encadenado",
-    "Var_PIB", "Var_prim", "Var_Sec", "Var_Ter",
+    "Var_PIB", "Var_Prim", "Var_Sec", "Var_Ter",
 ]
 #CARGA DE ARCHIVO
 with st.sidebar:
@@ -74,14 +75,10 @@ df = st.session_state.df
 with st.expander("👀 Ver datos"):
     st.dataframe(df.head(48), use_container_width=True)
 
-
-#EJE X
-
-
-
-#EJE Y:
 # Convertimos a tipos adecuados (sin romper si ya son numéricos)
 work = df.copy()
+
+# #EJE Y:
 
 st.header("📊 Variables a graficar")
 
@@ -91,17 +88,77 @@ candidates = [c for c in TARGET_Y_VARS if c in work.columns]
 if not candidates:
     candidates = numeric_cols  
 
-y_vars = st.multiselect(
+vars_y = st.multiselect(
     "Elige hasta 3 variables (Y)",
     options=candidates,
     default=candidates[:1]
 )
 
 # Máximo se pueden elegir 3 variables
-if len(y_vars) > 3:
+if len(vars_y) > 3:
     st.warning("Solo se permiten hasta 3 variables. Se tomarán las 3 primeras seleccionadas.")
-    y_vars = y_vars[:3]
+    vars_y = vars_y[:3]
 
-chart_type = st.selectbox("Tipo de gráfica", ["Líneas", "Barras", "Área", "Dispersión"], index=0)
+#Año y trimestre
+# Asegurar tipos (por si vienen como objeto/str en algún caso)
+df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
+df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce").astype("Int64")
 
-#Gráficas
+# Opciones en sidebar
+all_years = sorted([int(y) for y in df["year"].dropna().unique()])
+all_quarters = [1, 2, 3, 4]
+
+st.sidebar.markdown("### Filtros de tiempo")
+sel_years = st.sidebar.multiselect(
+    "Años", options=all_years, default=all_years
+)
+sel_quarters = st.sidebar.multiselect(
+    "Trimestres", options=all_quarters, default=all_quarters, format_func=lambda q: f"T{q}"
+)
+
+# Filtrado
+mask = df["year"].isin(sel_years) & df["quarter"].isin(sel_quarters)
+df_f = df.loc[mask].copy()
+
+# Ordenar por tiempo y crear etiqueta eje X (Año-Tn)
+df_f = df_f.sort_values(["year", "quarter"])
+df_f["x_label"] = df_f.apply(lambda r: f"{int(r['year'])}-T{int(r['quarter'])}", axis=1)
+
+# Validaciones rápidas
+if len(sel_years) == 0 or len(sel_quarters) == 0:
+    st.warning("Selecciona al menos un año y un trimestre.")
+elif len(df_f) == 0:
+    st.info("No hay datos para ese filtro.")
+elif len(vars_y) == 0:
+    st.warning("Selecciona al menos una serie para graficar.")
+else:
+   
+# Asegura orden temporal (por si acaso)
+    df_f = df_f.sort_values(["year", "quarter"])
+
+# Valida series
+validas = [c for c in vars_y if c in df_f.columns]
+if not validas:
+    st.warning("Selecciona al menos una serie válida para graficar.")
+elif df_f.empty:
+    st.info("No hay datos para ese filtro.")
+else:
+    fig = go.Figure()
+    for col in validas:
+        fig.add_trace(go.Scatter(
+            x=df_f["x_label"], y=df_f[col],
+            mode="lines+markers", name=col
+        ))
+
+    fig.update_layout(
+        title="Serie seleccionada por Año y Trimestre",
+        xaxis_title="Año - Trimestre",
+        yaxis_title="Valor",
+        hovermode="x unified",
+        margin=dict(l=10, r=10, t=50, b=10)
+    )
+    fig.update_xaxes(tickangle=-45)
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
