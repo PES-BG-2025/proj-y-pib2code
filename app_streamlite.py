@@ -16,28 +16,30 @@ st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide
 st.title("📈 Valor agregado por sectores económicos agregados, en Guatemala")
 st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
-#CARGA DE ARCHIVO EN LA SIDEBAR:
-with st.sidebar:
-    st.header("Cargar archivo de datos")
-    uploaded = st.file_uploader("Sube tu archivo (.xlsx)", type=["xlsx"]) 
-    # Botón para cargar
-    boton_carga = st.button("Cargar")
+st.session_state.df = pd.read_excel("PIB_encadenado.xlsx", engine="openpyxl")
 
-# Lectura del archivo cuando se presiona el botón
-sheet_name = None
-if boton_carga:
-    try:
-        # Excel
-        if sheet_name is None:
-            # Si por alguna razón no detectamos la hoja, leemos la primera
-            st.session_state.df = pd.read_excel('xlsx')
-        else:
-            st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
-        st.success(f"Archivo cargado correctamente")
-        # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
-        st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
-    except Exception as e:
-        st.error(f"Error al leer el archivo: {e}")
+# #CARGA DE ARCHIVO EN LA SIDEBAR:
+# with st.sidebar:
+#     st.header("Cargar archivo de datos")
+#     uploaded = st.file_uploader("Sube tu archivo (.xlsx)", type=["xlsx"]) 
+#     # Botón para cargar
+#     boton_carga = st.button("Cargar")
+
+# # Lectura del archivo cuando se presiona el botón
+# sheet_name = None
+# if boton_carga:
+#     try:
+#         # Excel
+#         if sheet_name is None:
+#             # Si por alguna razón no detectamos la hoja, leemos la primera
+#             st.session_state.df = pd.read_excel('xlsx')
+#         else:
+#             st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
+#         st.success(f"Archivo cargado correctamente")
+#         # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
+#         st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
+#     except Exception as e:
+#         st.error(f"Error al leer el archivo: {e}")
 
 # Si no hay datos aún, mostramos una guía rápida en el mensaje
 df = st.session_state.get("df", pd.DataFrame())
