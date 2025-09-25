@@ -71,8 +71,8 @@ series_map = {
 for etiqueta, (col_nom, col_cons) in series_map.items():
     # Columna del encadenado a crear
     enc_col = f"{etiqueta}_encadenado"
-    # Columna de tasa interanual (YoY) a crear
-    tasa_col = f"{etiqueta}_tasa_interanual"
+    # Columna de tasa interanual  a crear
+    tasa_col = f"{etiqueta}_tasa_var"
 
 # Encadenado por serie (sector)
     df[enc_col] = calcular_encadenado_sector(df, col_nom, col_cons)
@@ -94,21 +94,16 @@ cols_originales = [
 
 enc_cols  = [f"{s}_encadenado" for s in ["PIB","Prim","Sec","Ter"]]
 #print(enc_cols)
-tasas_cols = [f"{j}_Tasa_var" for j in ["PIB","Prim","Sec","Ter"]]
+tasas_cols = [f"{j}_tasa_var" for j in ["PIB","Prim","Sec","Ter"]]
 
+#¿cual es el orden final? cols_original + nuevas columnas
 orden_final = cols_originales + enc_cols + tasas_cols
 df_final = df[orden_final]
 
-#¿cual es el orden final? cols_original + nuevas columnas
-
-#orden_final = cols_originales + enc_cols + tasas_cols
-#df_final = df[orden_final]
-
-#df_final = df[cuadricula_final]
-#out_file = "PIB_encadenado.xlsx"
+out_file = "PIB_encadenado.xlsx"
 
 #exportar a nuevo excel
-#with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
-    #df_final.to_excel(writer, sheet_name="resultado", index=False)
+with pd.ExcelWriter(out_file, engine="openpyxl", mode="w") as writer:
+    df_final.to_excel(writer, sheet_name="resultado", index=False)
 
-#print(f"Archivo guardado: {out_file}")
+    print(f"Archivo guardado: {out_file}")
