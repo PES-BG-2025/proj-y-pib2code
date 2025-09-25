@@ -3,48 +3,44 @@
 import pandas as pd
 import streamlit as st
 import numpy as np
-import plotly.express as px
+import plotly.express as px 
 
-# Barside:
-#Definición de los parámetros de la aplicación
+# Inicialización de estado
+if "df" not in st.session_state:
+    st.session_state["df"] = pd.DataFrame()
+if "rename_map" not in st.session_state:
+    st.session_state["rename_map"] = {}
+
+#Titulos del Dashboard
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
-st.title("📈 Valor agregado por sector en Guatemala")
+st.title("📈 Valor agregado por sectores económicos en Guatemala")
 st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
-# Lista de variables permitidas en Y
-VARIABLES= [
-    "PIB_nominal", "Prim_nominal", "Sec_nominal", "Ter_nominal",
-    "PIB_constante", "Prim_constante", "Sec_constante", "Ter_constante",
-    "PIB_encadenado", "Prim_encadenado", "Sec_encadenado", "Ter_encadenado",
-    "Var_PIB", "Var_Prim", "Var_Sec", "Var_Ter",
-]
-#CARGA DE ARCHIVO
+#CARGA DE ARCHIVO EN LA SIDEBAR:
 with st.sidebar:
     st.header("Cargar archivo de datos")
     uploaded = st.file_uploader("Sube tu archivo (.xlsx)", type=["xlsx"]) 
-
-    
-
-    # Botón para cargar/leer definitivamente
-    load_btn = st.button("Cargar")
+    # Botón para cargar
+    boton_carga = st.button("Cargar")
 
 # Lectura del archivo cuando se presiona el botón
 sheet_name = None
-if load_btn:
+if boton_carga:
     try:
-                # Excel
-                if sheet_name is None:
-                    # Si por alguna razón no detectamos la hoja, leemos la primera
-                    st.session_state.df = pd.read_excel(uploaded)
-                else:
-                    st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
-                st.success(f"Archivo cargado correctamente: {uploaded.name} — {st.session_state.df.shape[0]} filas × {st.session_state.df.shape[1]} columnas")
-            # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
-                st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
+        # Excel
+        if sheet_name is None:
+            # Si por alguna razón no detectamos la hoja, leemos la primera
+            st.session_state.df = pd.read_excel(uploaded)
+        else:
+            st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
+        st.success(f"Archivo cargado correctamente")
+        # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
+        st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
     except Exception as e:
         st.error(f"Error al leer el archivo: {e}")
 
-# Si no hay datos aún, mostramos una guía rápida y sale
+# Si no hay datos aún, mostramos una guía rápida en el mensaje
+df = st.session_state.get("df", pd.DataFrame())
 if st.session_state.df.empty:
     st.info("Sube tu archivo y presiona **Cargar** en la barra lateral para comenzar.")
     st.stop()
@@ -59,14 +55,21 @@ with st.expander("👀 Ver datos"):
 work = df.copy()
 
 # #EJE Y:
-
 st.header("📊 Variables a graficar")
 
-# Sugerimos solo las variables objetivo si existen en el DataFrame; si no, mostramos todas las numéricas
-numeric_cols = work.select_dtypes(include=[np.number]).columns.tolist()
+# Lista de variables permitidas en Y
+VARIABLES= [
+    "PIB_nominal", "Prim_nominal", "Sec_nominal", "Ter_nominal",
+    "PIB_constante", "Prim_constante", "Sec_constante", "Ter_constante",
+    "PIB_encadenado", "Prim_encadenado", "Sec_encadenado", "Ter_encadenado",
+    "Var_PIB", "Var_Prim", "Var_Sec", "Var_Ter",
+]
+
+# Sugerimos solo las posibles de Y que existen en el Dataframe
+columnas = work.select_dtypes(include=[np.number]).columns.tolist()
 candidates = [c for c in VARIABLES if c in work.columns]
 if not candidates:
-    candidates = numeric_cols  
+    candidates = columnas
 
 vars_y = st.multiselect(
     "Elige hasta 3 variables (Y)",
@@ -84,7 +87,7 @@ if len(vars_y) > 3:
 df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
 df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce").astype("Int64")
 
-# Opciones en sidebar
+# Opciones en SIDEBAR
 all_years = sorted([int(y) for y in df["year"].dropna().unique()])
 all_quarters = [1, 2, 3, 4]
 
@@ -109,8 +112,6 @@ df_f["x_label"] = df_f.apply(lambda r: f"{int(r['year'])}-T{int(r['quarter'])}",
 validas = [c for c in vars_y if c in df_f.columns]
 if not validas:
     st.warning("Selecciona al menos una serie válida para graficar.")
-elif df_f.empty:
-    st.info("No hay datos para ese filtro.")
 else:
     y_cols = validas[0] if len(validas) == 1 else validas  
 
@@ -122,10 +123,7 @@ else:
         title="Serie por Año y Trimestre",
         labels={"x_label": "Año - Trimestre", "value": "Valor", "variable": "Serie"}
     )
-    fig.update_xaxes(tickangle=-45)
-    fig.update_layout(hovermode="x unified", margin=dict(l=10, r=10, t=50, b=10))
-
-    st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True)
 
 
 
