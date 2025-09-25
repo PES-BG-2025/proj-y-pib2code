@@ -1,10 +1,8 @@
 # Dashboard de resultados del encadenamiento (lee columnas: year, quarter, current_value, encadenado, tasa_crecimiento_interanual)
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
 
@@ -131,8 +129,9 @@ elif len(df_f) == 0:
     st.info("No hay datos para ese filtro.")
 elif len(vars_y) == 0:
     st.warning("Selecciona al menos una serie para graficar.")
-else:
-   
+
+
+#GRÁFICAS:
 # Asegura orden temporal (por si acaso)
     df_f = df_f.sort_values(["year", "quarter"])
 
