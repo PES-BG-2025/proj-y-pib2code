@@ -8,3 +8,4 @@ import streamlit as st
 #Definición de los parámetros de la aplicación
 file = st.sidebar.file_uploader("Sube tu Excel (.xlsx)", type=["xlsx"])
 sheet = st.sidebar.text_input("Nombre de la hoja", value="resultado")
+
