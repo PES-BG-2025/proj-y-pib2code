@@ -1,54 +1,18 @@
-# Dashboard de resultados del encadenamiento (lee columnas: year, quarter, current_value, encadenado, tasa_crecimiento_interanual)
+# Dashboard PIB Guatemala
 
 import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.express as px 
 
-# Inicialización de estado
-if "df" not in st.session_state:
-    st.session_state["df"] = pd.DataFrame()
-if "rename_map" not in st.session_state:
-    st.session_state["rename_map"] = {}
-
 #Titulos del Dashboard
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
 st.title("📈 Valor agregado por sectores económicos agregados, en Guatemala")
 st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
-st.session_state.df = pd.read_excel("PIB_encadenado.xlsx", engine="openpyxl")
+#Carga del archivo de excel
+df=st.session_state.df = pd.read_excel("PIB_encadenado.xlsx", engine="openpyxl")
 
-# #CARGA DE ARCHIVO EN LA SIDEBAR:
-# with st.sidebar:
-#     st.header("Cargar archivo de datos")
-#     uploaded = st.file_uploader("Sube tu archivo (.xlsx)", type=["xlsx"]) 
-#     # Botón para cargar
-#     boton_carga = st.button("Cargar")
-
-# # Lectura del archivo cuando se presiona el botón
-# sheet_name = None
-# if boton_carga:
-#     try:
-#         # Excel
-#         if sheet_name is None:
-#             # Si por alguna razón no detectamos la hoja, leemos la primera
-#             st.session_state.df = pd.read_excel('xlsx')
-#         else:
-#             st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
-#         st.success(f"Archivo cargado correctamente")
-#         # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
-#         st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
-#     except Exception as e:
-#         st.error(f"Error al leer el archivo: {e}")
-
-# Si no hay datos aún, mostramos una guía rápida en el mensaje
-df = st.session_state.get("df", pd.DataFrame())
-if st.session_state.df.empty:
-    st.info("Sube tu archivo y presiona **Cargar** en la barra lateral para comenzar.")
-    st.stop()
-
-#Guarda el dataframe 
-df = st.session_state.df
 # Vista rápida
 with st.expander("👀 Ver datos"):
     st.dataframe(df.head(48), use_container_width=True)
@@ -64,7 +28,7 @@ VARIABLES= [
     "PIB_nominal", "Prim_nominal", "Sec_nominal", "Ter_nominal",
     "PIB_constante", "Prim_constante", "Sec_constante", "Ter_constante",
     "PIB_encadenado", "Prim_encadenado", "Sec_encadenado", "Ter_encadenado",
-    "Var_PIB", "Var_Prim", "Var_Sec", "Var_Ter",
+    "PIB_tasa_var", "Prim_tasa_var", "Sec_tasa_var", "Ter_tasa_var",
 ]
 
 # Sugerimos solo las posibles de Y que existen en el Dataframe
