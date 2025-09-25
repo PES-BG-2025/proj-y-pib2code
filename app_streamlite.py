@@ -10,10 +10,10 @@ import plotly.express as px
 #Definición de los parámetros de la aplicación
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
 st.title("📈 Valor agregado por sector en Guatemala")
-st.caption("Carga tu Excel, elige año/trimestres y grafica hasta 3 variables.")
+st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
 # Lista de variables permitidas en Y
-TARGET_Y_VARS = [
+VARIABLES= [
     "PIB_nominal", "Prim_nominal", "Sec_nominal", "Ter_nominal",
     "PIB_constante", "Prim_constante", "Sec_constante", "Ter_constante",
     "PIB_encadenado", "Prim_encadenado", "Sec_encadenado", "Ter_encadenado",
@@ -39,22 +39,22 @@ with st.sidebar:
 # Lectura del archivo cuando se presiona el botón
 if load_btn:
     try:
-        if uploaded is None:
-            st.warning("Sube un archivo.")
-        else:
-            fname = uploaded.name.lower()
-            if fname.endswith(".csv"):
-                st.session_state.df = pd.read_csv(uploaded)
-            else:
+        # if uploaded is None:
+        #     st.warning("Sube un archivo.")
+        # else:
+        #     fname = uploaded.name.lower()
+        #     if fname.endswith(".csv"):
+        #         st.session_state.df = pd.read_csv(uploaded)
+            # else:
                 # Excel
                 if sheet_name is None:
                     # Si por alguna razón no detectamos la hoja, leemos la primera
                     st.session_state.df = pd.read_excel(uploaded)
                 else:
                     st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
-            st.success(f"Archivo cargado correctamente: {uploaded.name} — {st.session_state.df.shape[0]} filas × {st.session_state.df.shape[1]} columnas")
+                st.success(f"Archivo cargado correctamente: {uploaded.name} — {st.session_state.df.shape[0]} filas × {st.session_state.df.shape[1]} columnas")
             # Reiniciar mapa de renombres cada vez que se carga un archivo nuevo
-            st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
+                st.session_state.rename_map = {c: c for c in st.session_state.df.columns}
     except Exception as e:
         st.error(f"Error al leer el archivo: {e}")
 
@@ -78,7 +78,7 @@ st.header("📊 Variables a graficar")
 
 # Sugerimos solo las variables objetivo si existen en el DataFrame; si no, mostramos todas las numéricas
 numeric_cols = work.select_dtypes(include=[np.number]).columns.tolist()
-candidates = [c for c in TARGET_Y_VARS if c in work.columns]
+candidates = [c for c in VARIABLES if c in work.columns]
 if not candidates:
     candidates = numeric_cols  
 
