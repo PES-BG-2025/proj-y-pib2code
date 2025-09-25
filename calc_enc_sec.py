@@ -30,9 +30,9 @@ def calcular_encadenado_sector(df, col_nominal, col_constante):
     """
     # Promedios corrientes por año
     prom_corr = df.groupby("year")[col_nominal].mean().to_dict()
-    prom_enc = {}  # guardará el promedio encadenado por año
+    prom_enc = {}  # diccionario para el encadenado
 
-    enc = np.full(len(df), np.nan, dtype=float)
+    enc = np.full(len(df), np.nan, dtype=float) #se crea arreglo de Numpy para meter todo el encadenado, se intento hacer con 0, pero segun la libreria es mehjor hacerlo con nan, ya que lo señalas como marcador faltante o indefinido
     years = sorted(df["year"].unique())
     
     #asignación de año de referencia (deberia ser 2013, REVISAR)
@@ -44,4 +44,13 @@ def calcular_encadenado_sector(df, col_nominal, col_constante):
             # Año base: igual a las cifras constantes (a precios del año anterior)
             enc[ref] = df.loc[ref, col_constante].to_numpy(dtype=float)
         else:
-        pass
+            c_prev = prom_corr[y - 1]      # promedio corriente del año anterior
+            ke_prev = prom_enc[y - 1]      # promedio encadenado del año anterior
+            enc[ref] = (
+                df.loc[ref, col_constante].to_numpy(dtype=float) / float(c_prev)
+            ) * float(ke_prev)
+
+        # promedio encadenado del año actual (los 4T)
+        prom_enc[y] = np.nanmean(enc[ref]) #podriamos usar el nan.mean para setear años incompletos (2025 1 y 2T, REVISAR)
+
+    return pd.Series(enc, index=df.index)
