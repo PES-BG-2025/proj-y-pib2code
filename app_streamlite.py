@@ -26,7 +26,7 @@ TARGET_Y_VARS = [
 ]
 #CARGA DE ARCHIVO
 with st.sidebar:
-    st.header("1) Cargar datos")
+    st.header("Cargar archivo de datos")
     uploaded = st.file_uploader("Sube tu archivo (.xlsx, .xls o .csv)", type=["xlsx", "xls", "csv"]) 
 
     sheet_name = None
@@ -63,7 +63,7 @@ if load_btn:
     except Exception as e:
         st.error(f"Error al leer el archivo: {e}")
 
-# Si no hay datos aún, mostramos una guía rápida y salimos
+# Si no hay datos aún, mostramos una guía rápida y sale
 if st.session_state.df.empty:
     st.info("Sube tu archivo y presiona **Cargar** en la barra lateral para comenzar.")
     st.stop()
@@ -74,7 +74,12 @@ df = st.session_state.df
 with st.expander("👀 Ver datos"):
     st.dataframe(df.head(48), use_container_width=True)
 
-#VARIABLES PARA Y
+
+#EJE X
+
+
+
+#EJE Y:
 # Convertimos a tipos adecuados (sin romper si ya son numéricos)
 work = df.copy()
 
@@ -92,10 +97,11 @@ y_vars = st.multiselect(
     default=candidates[:1]
 )
 
-# Forzamos máximo 3
+# Máximo se pueden elegir 3 variables
 if len(y_vars) > 3:
     st.warning("Solo se permiten hasta 3 variables. Se tomarán las 3 primeras seleccionadas.")
     y_vars = y_vars[:3]
 
 chart_type = st.selectbox("Tipo de gráfica", ["Líneas", "Barras", "Área", "Dispersión"], index=0)
 
+#Gráficas
