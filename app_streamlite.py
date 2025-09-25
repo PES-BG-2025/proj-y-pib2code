@@ -13,7 +13,7 @@ if "rename_map" not in st.session_state:
 
 #Titulos del Dashboard
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
-st.title("📈 Valor agregado por sectores económicos en Guatemala")
+st.title("📈 Valor agregado por sectores económicos agregados, en Guatemala")
 st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
 #CARGA DE ARCHIVO EN LA SIDEBAR:
@@ -30,7 +30,7 @@ if boton_carga:
         # Excel
         if sheet_name is None:
             # Si por alguna razón no detectamos la hoja, leemos la primera
-            st.session_state.df = pd.read_excel(uploaded)
+            st.session_state.df = pd.read_excel('xlsx')
         else:
             st.session_state.df = pd.read_excel(uploaded, sheet_name=sheet_name)
         st.success(f"Archivo cargado correctamente")
@@ -67,14 +67,14 @@ VARIABLES= [
 
 # Sugerimos solo las posibles de Y que existen en el Dataframe
 columnas = work.select_dtypes(include=[np.number]).columns.tolist()
-candidates = [c for c in VARIABLES if c in work.columns]
-if not candidates:
+candidatos = [c for c in VARIABLES if c in work.columns]
+if not candidatos:
     candidates = columnas
 
 vars_y = st.multiselect(
     "Elige hasta 3 variables (Y)",
-    options=candidates,
-    default=candidates[:1]
+    options=candidatos,
+    default=candidatos[:1]
 )
 
 # Máximo se pueden elegir 3 variables
@@ -83,24 +83,24 @@ if len(vars_y) > 3:
     vars_y = vars_y[:3]
 
 #Año y trimestre
-# Asegurar tipos (por si vienen como objeto/str en algún caso)
-df["year"] = pd.to_numeric(df["year"], errors="coerce").astype("Int64")
-df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce").astype("Int64")
+# Asegurar tipos (por si vienen como str en algún caso), corce= devuelve NaN
+df["year"] = pd.to_numeric(df["year"], errors="coerce")
+df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce")
 
 # Opciones en SIDEBAR
-all_years = sorted([int(y) for y in df["year"].dropna().unique()])
+all_years = sorted([int(y) for y in df["year"].unique()])
 all_quarters = [1, 2, 3, 4]
 
 st.sidebar.markdown("### Filtros de tiempo")
-sel_years = st.sidebar.multiselect(
+years = st.sidebar.multiselect(
     "Años", options=all_years, default=all_years
 )
-sel_quarters = st.sidebar.multiselect(
+quarters = st.sidebar.multiselect(
     "Trimestres", options=all_quarters, default=all_quarters, format_func=lambda q: f"T{q}"
 )
 
 # Filtrado de los años y trimestres que se eligen
-mask = df["year"].isin(sel_years) & df["quarter"].isin(sel_quarters)
+mask = df["year"].isin(years) & df["quarter"].isin(quarters)
 df_f = df.loc[mask].copy()
 
 # Ordenar por tiempo y crear etiqueta eje X (Año-Tn)
@@ -123,7 +123,7 @@ else:
         title="Serie por Año y Trimestre",
         labels={"x_label": "Año - Trimestre", "value": "Valor", "variable": "Serie"}
     )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)
 
 
 
