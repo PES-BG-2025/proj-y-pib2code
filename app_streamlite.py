@@ -4,17 +4,13 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
-
+import plotly.express as px
 
 # Barside:
 #Definición de los parámetros de la aplicación
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
-st.title("📈 PIB en Guatemala")
-st.caption("Carga tu Excel, elige Año/Quarter y grafica hasta 3 variables.")
-
-# Obtiene los colores de fondo y texto del tema actual de streamlit
-backgroundColor = st.get_option('theme.secondaryBackgroundColor')
-textColor = st.get_option('theme.textColor')
+st.title("📈 Valor agregado por sector en Guatemala")
+st.caption("Carga tu Excel, elige año/trimestres y grafica hasta 3 variables.")
 
 # Lista de variables permitidas en Y
 TARGET_Y_VARS = [
@@ -114,7 +110,7 @@ sel_quarters = st.sidebar.multiselect(
     "Trimestres", options=all_quarters, default=all_quarters, format_func=lambda q: f"T{q}"
 )
 
-# Filtrado
+# Filtrado de los años y trimestres que se eligen
 mask = df["year"].isin(sel_years) & df["quarter"].isin(sel_quarters)
 df_f = df.loc[mask].copy()
 
@@ -122,19 +118,7 @@ df_f = df.loc[mask].copy()
 df_f = df_f.sort_values(["year", "quarter"])
 df_f["x_label"] = df_f.apply(lambda r: f"{int(r['year'])}-T{int(r['quarter'])}", axis=1)
 
-# Validaciones rápidas
-if len(sel_years) == 0 or len(sel_quarters) == 0:
-    st.warning("Selecciona al menos un año y un trimestre.")
-elif len(df_f) == 0:
-    st.info("No hay datos para ese filtro.")
-elif len(vars_y) == 0:
-    st.warning("Selecciona al menos una serie para graficar.")
-
-
 #GRÁFICAS:
-# Asegura orden temporal (por si acaso)
-    df_f = df_f.sort_values(["year", "quarter"])
-
 # Valida series
 validas = [c for c in vars_y if c in df_f.columns]
 if not validas:
@@ -142,22 +126,20 @@ if not validas:
 elif df_f.empty:
     st.info("No hay datos para ese filtro.")
 else:
-    fig = go.Figure()
-    for col in validas:
-        fig.add_trace(go.Scatter(
-            x=df_f["x_label"], y=df_f[col],
-            mode="lines+markers", name=col
-        ))
+    y_cols = validas[0] if len(validas) == 1 else validas  
 
-    fig.update_layout(
-        title="Serie seleccionada por Año y Trimestre",
-        xaxis_title="Año - Trimestre",
-        yaxis_title="Valor",
-        hovermode="x unified",
-        margin=dict(l=10, r=10, t=50, b=10)
+    fig = px.line(
+        df_f,
+        x="x_label",
+        y=y_cols,
+        markers=True,
+        title="Serie por Año y Trimestre",
+        labels={"x_label": "Año - Trimestre", "value": "Valor", "variable": "Serie"}
     )
     fig.update_xaxes(tickangle=-45)
+    fig.update_layout(hovermode="x unified", margin=dict(l=10, r=10, t=50, b=10))
 
     st.plotly_chart(fig, use_container_width=True)
+
 
 
