@@ -3,7 +3,6 @@
 import pandas as pd
 import streamlit as st
 import numpy as np
-import plotly.graph_objects as go
 import plotly.express as px
 
 # Barside:
@@ -22,30 +21,17 @@ VARIABLES= [
 #CARGA DE ARCHIVO
 with st.sidebar:
     st.header("Cargar archivo de datos")
-    uploaded = st.file_uploader("Sube tu archivo (.xlsx, .xls o .csv)", type=["xlsx", "xls", "csv"]) 
+    uploaded = st.file_uploader("Sube tu archivo (.xlsx)", type=["xlsx"]) 
 
-    sheet_name = None
-    if uploaded is not None and uploaded.name.lower().endswith((".xlsx", ".xls")):
-        # Si es Excel, intentamos listar hojas
-        try:
-            xls = pd.ExcelFile(uploaded)
-            sheet_name = st.selectbox("Hoja de Excel", xls.sheet_names, index=0)
-        except Exception as e:
-            st.error("No se pudo leer el Excel") #Asegurar de tener 'openpyxl' instalado si es .xlsx.
+    
 
     # Botón para cargar/leer definitivamente
     load_btn = st.button("Cargar")
 
 # Lectura del archivo cuando se presiona el botón
+sheet_name = None
 if load_btn:
     try:
-        # if uploaded is None:
-        #     st.warning("Sube un archivo.")
-        # else:
-        #     fname = uploaded.name.lower()
-        #     if fname.endswith(".csv"):
-        #         st.session_state.df = pd.read_csv(uploaded)
-            # else:
                 # Excel
                 if sheet_name is None:
                     # Si por alguna razón no detectamos la hoja, leemos la primera
