@@ -17,3 +17,5 @@ print(df.isnull().sum())
 # Revisar si cada año tiene 4 trimestres
 conteo_trimestres = df.groupby("year")["quarter"].nunique()
 print(conteo_trimestres)
+
+______
