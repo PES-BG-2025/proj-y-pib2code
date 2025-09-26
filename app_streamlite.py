@@ -8,7 +8,7 @@ import plotly.express as px    # Gráficos interactivos
 
 #1. Configuración de la página de Streamlit
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide") # Título de la pestaña del navegador
-st.title("📈 Valor agregado por sectores económicos agregados, en Guatemala") # Título principal visible en la app
+st.title("📈 Valor agregado por sectores económicos, en Guatemala") # Título principal visible en la app
 
 #2. Carga de archivo de Excel y lo guardo en sesión 
 #para almacenar un DataFrame de Pandas (u otros objetos similares) en el estado de sesión de Streamlit, 
@@ -57,7 +57,7 @@ if len(vars_y) > 3:
     vars_y = vars_y[:3]
 
 #Año y trimestre
-#8 Normalizo tipos de año y trimestre: convierto a numérico; si hay strings, corce= devuelve NaN
+#Normalizo tipos de año y trimestre: convierto a numérico; si hay strings, corce= devuelve NaN
 df["year"] = pd.to_numeric(df["year"], errors="coerce")
 df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce")
 
@@ -85,7 +85,7 @@ df_f = df_f.sort_values(["year", "quarter"])
 df_f["x_label"] = df_f.apply(lambda r: f"{int(r['year'])}-T{int(r['quarter'])}", axis=1)
 
 
-#GRÁFICA con Plotly
+#5. Gráfica con Plotly
 # Valida series
 validas = [c for c in vars_y if c in df_f.columns]
 if not validas:
