@@ -8,18 +8,17 @@ import plotly.express as px
 #Titulos del Dashboard
 st.set_page_config(page_title="PIB de Guatemala", page_icon="📈", layout="wide")
 st.title("📈 Valor agregado por sectores económicos agregados, en Guatemala")
-st.caption("Sube el archivo, elige años y trimestres y compara hasta 3 series.")
 
 #Carga del archivo de excel
 df=st.session_state.df = pd.read_excel("PIB_encadenado.xlsx", engine="openpyxl")
 
-# Vista rápida
-with st.expander("👀 Ver datos"):
+# Vista rápida del dataframe
+with st.expander("👀 Expandir para ver datos"):
     st.dataframe(df.head(48), use_container_width=True)
+
 
 # Convertimos a tipos adecuados (sin romper si ya son numéricos)
 work = df.copy()
-
 # #EJE Y:
 st.header("📊 Variables a graficar")
 
@@ -42,10 +41,9 @@ vars_y = st.multiselect(
     options=candidatos,
     default=candidatos[:1]
 )
-
 # Máximo se pueden elegir 3 variables
 if len(vars_y) > 3:
-    st.warning("Solo se permiten hasta 3 variables. Se tomarán las 3 primeras seleccionadas.")
+    st.warning("Solo se permiten hasta 3 variables")
     vars_y = vars_y[:3]
 
 #Año y trimestre
@@ -57,7 +55,7 @@ df["quarter"] = pd.to_numeric(df["quarter"], errors="coerce")
 all_years = sorted([int(y) for y in df["year"].unique()])
 all_quarters = [1, 2, 3, 4]
 
-st.sidebar.markdown("### Filtros de tiempo")
+st.sidebar.markdown("### Elegir filtros de tiempo")
 years = st.sidebar.multiselect(
     "Años", options=all_years, default=all_years
 )
@@ -65,13 +63,17 @@ quarters = st.sidebar.multiselect(
     "Trimestres", options=all_quarters, default=all_quarters, format_func=lambda q: f"T{q}"
 )
 
-# Filtrado de los años y trimestres que se eligen
+# Filtrado de los años y trimestres cuando se eligen
 mask = df["year"].isin(years) & df["quarter"].isin(quarters)
 df_f = df.loc[mask].copy()
+if df_f.empty:
+    st.warning("No hay datos para esa combinación de año(s) y trimestre(s).")
+    st.stop()
 
 # Ordenar por tiempo y crear etiqueta eje X (Año-Tn)
 df_f = df_f.sort_values(["year", "quarter"])
 df_f["x_label"] = df_f.apply(lambda r: f"{int(r['year'])}-T{int(r['quarter'])}", axis=1)
+
 
 #GRÁFICAS:
 # Valida series
@@ -87,7 +89,7 @@ else:
         y=y_cols,
         markers=True,
         title="Serie por Año y Trimestre",
-        labels={"x_label": "Año - Trimestre", "value": "Valor", "variable": "Serie"}
+        labels={"x_label": "Año y Trimestre", "value": "Valor", "variable": "Serie"}
     )
 st.plotly_chart(fig)
 
