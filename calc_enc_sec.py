@@ -32,12 +32,11 @@ def calcular_encadenado_sector(df, col_nominal, col_constante):
     prom_corr = df.groupby("year")[col_nominal].mean().to_dict()
     prom_enc = {}  # diccionario para el encadenado
 
-    enc = np.full(len(df), np.nan, dtype=float) #se crea arreglo de Numpy para meter todo el encadenado, se intento hacer con 0, pero segun la libreria es mehjor hacerlo con nan, ya que lo señalas como marcador faltante o indefinido
-    years = sorted(df["year"].unique()) #se penso en ordenar una lista ordenada de los años que hay disponibles en el DF.
+    enc = np.full(len(df), np.nan, dtype=float) #se crea arreglo de Numpy para adicionar todo el encadenado.
+    years = sorted(df["year"].unique()) 
     
-    #asignación de año de referencia (deberia ser 2013, REVISAR)
-    base_Year = years[0] 
-    #print(base_Year)
+    #asignación de año de referencia
+    base_Year = years[0]   
     for y in years:
         ref = (df["year"] == y) 
         if y == base_Year:
@@ -51,14 +50,12 @@ def calcular_encadenado_sector(df, col_nominal, col_constante):
             ) * float(ke_prev)
 
         # promedio encadenado del año actual (los 4T)
-        prom_enc[y] = np.nanmean(enc[ref]) #podriamos usar el nan.mean para setear años incompletos (2025 1 y 2T, REVISAR)
-
+        prom_enc[y] = np.mean(enc[ref])
     return pd.Series(enc, index=df.index)
 
-# step 3 ) Mapeo de series (para ubicarlas tanto en sus versiones corrientes como constantes ) y cálculo por sector
-
-
-#se genera un map, (segun documentaciones -> aplica otra función a cada elemento de un iterable (como una lista) y devuelve un objeto map, que es un iterador)
+# --------------------------------------------
+# 3) Función: Mapeo de series (para ubicarlas tanto en sus versiones corrientes como constantes ) y cálculo por sector
+# --------------------------------------------
 series_map = {
     "PIB":  ("PIB_nominal",  "PIB_constante"),
     "Prim": ("Prim_nominal", "Prim_constante"),
@@ -79,21 +76,20 @@ for etiqueta, (col_nom, col_cons) in series_map.items():
 
     # Tasa de crecimiento interanual (respecto al mismo trimestre del año anterior)
     df[tasa_col] = (df[enc_col] / df[enc_col].shift(4) * 100) - 100.0
-    df[tasa_col] = df[tasa_col].round(2)  # redondeo a 2 decimales para que se vea mejor en el dashboard
+    df[tasa_col] = df[tasa_col].round(2)  
 
-#Step 4 ) #exportación a excel (agregando las columnas del encadenado y de las tasas de var.)
+# --------------------------------------------
+# 4) exportación a excel (agregando las columnas del encadenado y de las tasas de var.)
+# --------------------------------------------
 
 cols_originales = [
     "year", "quarter",
     "PIB_nominal","Prim_nominal","Sec_nominal","Ter_nominal",
     "PIB_constante","Prim_constante","Sec_constante","Ter_constante"]
-
-#a las originales añadiles las nuevas ¿cuales son las nuevas?       
-
+    
 #constantes y tasas de variación
 
 enc_cols  = [f"{s}_encadenado" for s in ["PIB","Prim","Sec","Ter"]]
-#print(enc_cols)
 tasas_cols = [f"{j}_tasa_var" for j in ["PIB","Prim","Sec","Ter"]]
 
 #¿cual es el orden final? cols_original + nuevas columnas
